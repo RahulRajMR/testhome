@@ -45,10 +45,11 @@
 		mouse.x = ( e.clientX / width ) * 2 - 1;
 		mouse.y = - ( e.clientY / height ) * 2 + 1;
 		raycaster.setFromCamera( mouse, camera );
-		return raycaster.intersectObjects( hotMeshArr )[0];
+		return raycaster.intersectObjects(hotMeshArr)[0];
     }
 
     function create () {
+        
         renderer = new THREE.WebGLRenderer();
         renderer.setSize(width, height);
         renderer.setClearColor(0xcce0ff, 1);
@@ -69,7 +70,6 @@
         
         createBed();
         
-     
         document.addEventListener('click', onClickWindow);
     }
 
@@ -99,7 +99,30 @@
         } );
     }
 
+      
+//skybox
+
+let materialArray = [];
+let texture_ft = new THREE.TextureLoader().load( 'meadow_ft.jpg');
+let texture_bk = new THREE.TextureLoader().load( 'meadow__bk.jpg');
+let texture_up = new THREE.TextureLoader().load( 'meadow__up.jpg');
+let texture_dn = new THREE.TextureLoader().load( 'meadow__dn.jpg');
+let texture_rt = new THREE.TextureLoader().load( 'meadow__rt.jpg');
+let texture_lf = new THREE.TextureLoader().load( 'meadow__lf.jpg');
+  
+materialArray.push(new THREE.MeshBasicMaterial( { map: texture_ft }));
+materialArray.push(new THREE.MeshBasicMaterial( { map: texture_bk }));
+materialArray.push(new THREE.MeshBasicMaterial( { map: texture_up }));
+materialArray.push(new THREE.MeshBasicMaterial( { map: texture_dn }));
+materialArray.push(new THREE.MeshBasicMaterial( { map: texture_rt }));
+materialArray.push(new THREE.MeshBasicMaterial( { map: texture_lf }));
    
+for (let i = 0; i < 6; i++)
+  materialArray[i].side = THREE.BackSide;
+   
+let skyboxGeo = new THREE.BoxGeometry( 10000, 10000, 10000);
+let skybox = new THREE.Mesh( skyboxGeo, materialArray );
+scene.add( skybox );  
 
     function render() {
         if (timeHouse >= 0) {
