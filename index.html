@@ -100,15 +100,11 @@
 
     function createBed () {
         var loader = new THREE.FBXLoader();
-        loader.load('./obj/good-life.fbx', function ( object ) {
-        console.log(object)
-            
-        object.children.forEach(child => {
-        if (child.name.includes('hotspot')) hotMeshArr.push(child);
+        loader.load('./obj/good-life.fbx', function ( object ) {            
+            object.children.forEach(child => {
+                if (child.name.includes('hotspot')) hotMeshArr.push(child);
         });
-        object.name='good-life';
-
-        
+        object.name='good-life'
         house.add( object );
         });
     }
@@ -117,10 +113,8 @@
     function createhome(){
         var loader = new THREE.FBXLoader();
         loader.load('./obj/concordia.fbx', function ( object1 ) {
-        console.log(object1)
-            
-        object1.children.forEach(child => {
-        if (child.name.includes('hotspot')) hotMeshArr.push(child);
+            object1.children.forEach(child => {
+                if (child.name.includes('hotspot')) hotMeshArr.push(child);
         });
         object1.name='createhome';
         house.add( object1 );
@@ -130,15 +124,10 @@
     function createterrain(){
         var loader = new THREE.FBXLoader();
         loader.load('./obj/promenade.fbx', function ( object2 ) {
-    
-            
-        object2.children.forEach(child => {
-        if (child.name.includes('hotspot')) hotMeshArr.push(child);
+            object2.children.forEach(child => {
+                if (child.name.includes('hotspot')) hotMeshArr.push(child);
         });
         object2.name='promenade';
-        // object2.position.set(150,50,70)
-        // object2.scale.set(50, 50, 50)
-        // object2.rotation.set(0,1.74,0)
         house.add( object2 );
         });
     }
@@ -146,23 +135,13 @@
     function creategurden(){
         var loader = new THREE.FBXLoader();
         loader.load('./obj/sanctuary.fbx', function ( object3 ) {
-    
-            
-        object3.children.forEach(child => {
-        if (child.name.includes('hotspot')) hotMeshArr.push(child);
+            object3.children.forEach(child => {
+                if (child.name.includes('hotspot')) hotMeshArr.push(child);
         });
         object3.name='promenade';
-        object3.position.set(-190,40,190)
-            object3.scale.set(50, 50, 50)
-            object3.rotation.set(0,60,0)
         house.add( object3 );
         });
     }
-
-
-
-
-
       
 //skybox
 
@@ -189,7 +168,7 @@
     scene.add( skybox );  
 
     function render() {
-    if (timeHouse >= 0) {
+    if (timeHouse >= 0){
         timeHouse--;
         house.position.x += deltaHouse.x;
         house.position.z += deltaHouse.z;
