@@ -1,183 +1,140 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>home</title>
-    <style>
-        body {
-            margin: 0;
-            overflow: hidden;
-            touch-action: none;
-        }
-    </style>
-    <script src="./js/three.js"></script>
-    <script src="./js/FBXLoader.js"></script>
-    <script src="./js/fflate.js"></script>
-    <script src="./js/OrbitControls.js"></script>
-    <link rel="stylesheet" type="text/css" href="styles.css" />
+	<meta charset="UTF-8">
+	<title>home</title>
+	<link rel="stylesheet" href="./css/index.css">
+	<script src="./js/three.js"></script>
+	<script src="./js/FBXLoader.js"></script>
+	<script src="./js/fflate.js"></script>
+	<script src="./js/OrbitControls.js"></script>
+	<script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+	<link rel="stylesheet" type="text/css" href="styles.css" />
 
 </head>
 <body>
-    
-    <!-- <div class="navbar">
-       
-        <a href="#home" class="active">Home</a>
-        <a href="#news">News</a>
-        <a href="#contact">Contact</a>
-      </div> -->
-
+	<div class="setting">
+		<div class="scene-item" id="promenade" onclick="SetScene('promenade')">Promenade</div>
+		<div class="scene-item" id="sanctuary" onclick="SetScene('sanctuary')">Sanctuary</div>
+		<div class="scene-item" id="concordia" onclick="SetScene('concordia')">Concordia</div>
+		<div class="scene-item" id="good-life" onclick="SetScene('good-life')">Good Life</div>
+	</div>
 <script>
-    const width = window.innerWidth, height = window.innerHeight, hotMeshArr = [];
+	const width = window.innerWidth, height = window.innerHeight, hotMeshArr = [];
+	const raycaster = new THREE.Raycaster(), mouse = new THREE.Vector2();
+	const timeHouseMove = 50, keyArr = ['promenade', 'sanctuary', 'concordia', 'good-life'];
+	var renderer, scene, camera, house, selScene = '';
+	var selHot, deltaHouse, timeHouse = -1, flagMove = false;
 
-    //for object camera zoom hot spot
-    const raycaster = new THREE.Raycaster(), mouse = new THREE.Vector2();
-    const timeHouseMove = 50;
-    var renderer, scene, camera, house
-    var selHot, deltaHouse, timeHouse = -1, flagMove = false;
+	create();
+	render();
 
-    create()
-    render()
+	function SetScene(sceneKey) {
+		if (sceneKey===selScene) return;
+		selScene = sceneKey;
+		house.children.forEach(child => {
+			child.visible = child.name===selScene;
+		});
+		house.position.set(0, 0, 0);
+		jQuery('.scene-item').removeClass('active');
+		jQuery('#'+selScene).addClass('active');
+	}
 
-    function onClickWindow (e) {
-        if (flagMove) return;
-        const interHot = getClickObject(e);
-        if (interHot && interHot.object.name !== selHot) {
-            selHot = interHot.object.name;
-            const hotPos = interHot.object.position, housePos = house.position;
-            deltaHouse = {x:(housePos.x + hotPos.x)/-timeHouseMove, z:(housePos.z + hotPos.z)/-timeHouseMove};
-            flagMove = true; timeHouse = timeHouseMove;
-        }
-    }
+	function onClickWindow (e) {
+		if (flagMove) return;
+		const interHot = getClickObject(e);
+		if (interHot && interHot.object.name !== selHot) {
+			selHot = interHot.object.name;
+			const hotPos = interHot.object.position, housePos = house.position;
+			deltaHouse = {x:(housePos.x + hotPos.x)/-timeHouseMove, z:(housePos.z + hotPos.z)/-timeHouseMove};
+			flagMove = true; timeHouse = timeHouseMove;
+		}
+	}
 
-    function getClickObject (e) {
-        if (!hotMeshArr.length) return;
+	function getClickObject (e) {
+		const selHotArr = hotMeshArr.filter(hotItem=>{return hotItem.sceneKey===selScene});
+		if (!selHotArr.length) return;
 		mouse.x = ( e.clientX / width ) * 2 - 1;
 		mouse.y = - ( e.clientY / height ) * 2 + 1;
 		raycaster.setFromCamera( mouse, camera );
-		return raycaster.intersectObjects(hotMeshArr)[0];
-    }
+		return raycaster.intersectObjects(selHotArr)[0];
+	}
 
-    function create () {
-        
-        renderer = new THREE.WebGLRenderer();
-        renderer.setSize(width, height);
-        renderer.setClearColor(0xcce0ff, 1);
-        document.body.appendChild(renderer.domElement);
+	function create () {
+		renderer = new THREE.WebGLRenderer();
+		renderer.setSize(width, height);
+		renderer.setClearColor(0xcce0ff, 1);
+		document.body.appendChild(renderer.domElement);
 
-        scene = new THREE.Scene();
-        house = new THREE.Group(); scene.add(house);
+		scene = new THREE.Scene();
+		house = new THREE.Group(); scene.add(house);
 
-        camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 10000);
-        camera.position.set(0, 0, -0.1)
-        camera.lookAt(scene.position);
+		camera = new THREE.PerspectiveCamera(60, width / height, 0.1, 10000);
+		camera.position.set(0, 0, -0.1)
+		camera.lookAt(scene.position);
 
-        const light = new THREE.AmbientLight(0xCCCCCC);
-        scene.add(light);
+		const light = new THREE.AmbientLight(0xCCCCCC);
+		scene.add(light);
 
-        controls = new THREE.OrbitControls(camera, renderer.domElement);
-        controls.maxPolarAngle = Math.PI/2.1; 
-        
-        createBed();
-        createhome();
-        createterrain();
-        creategurden()
-        
-        document.addEventListener('click', onClickWindow);
-    }
+		const controls = new THREE.OrbitControls(camera, renderer.domElement);
+		controls.maxPolarAngle = Math.PI/2.1; 
+		
+		loadScene();
+		loadSkyMesh();
+		plane();
+		document.addEventListener('click', onClickWindow);
+	}
+
+	function loadScene() {
+		var loadedCount = 0;
+		keyArr.forEach(keyStr => {
+			var loader = new THREE.FBXLoader();
+			loader.load('./obj/'+keyStr+'.fbx', function ( object ) {
+				object.children.forEach(child => {
+					if (child.name.includes('hotspot')) {
+						child.sceneKey = keyStr;
+						hotMeshArr.push(child);
+					}
+				});
+				object.name=keyStr;
+				object.visible = false;
+				house.add( object );
+				loadedCount++;
+				if (loadedCount===keyArr.length) SetScene('good-life');
+			});
+		});
+	}
+
+	function plane(){
+		const geometry = new THREE.PlaneGeometry( 0.12, 0.12);
+		const material = new THREE.MeshBasicMaterial( {color: 0xffff00, side: THREE.DoubleSide} );
+		const plane = new THREE.Mesh( geometry, material );
+		scene.add( plane );
+	}
+
+	function loadSkyMesh() {
+		const matArr = [], imgArr = ['ft', 'bk', 'up', 'dn', 'rt', 'lf'];
+		imgArr.forEach(imgDir => {
+			const mapSky = new THREE.TextureLoader().load( 'meadow_'+imgDir+'.jpg');
+			matArr.push(new THREE.MeshBasicMaterial( { map: mapSky, side:2 }));
+		});
+		const skyboxGeo = new THREE.BoxGeometry( 10000, 10000, 10000);
+		const skybox = new THREE.Mesh( skyboxGeo, matArr );
+		scene.add( skybox );  
 
 
-    function createGrass () {
-        const geometry = new THREE.PlaneGeometry( 10000, 10000);
-        const texture = new THREE.TextureLoader().load('img/grass.jpg');
-        texture.wrapS = THREE.RepeatWrapping;
-        texture.wrapT = THREE.RepeatWrapping;
-        texture.repeat.set( 100, 100 );
-        const grassMaterial = new THREE.MeshBasicMaterial({map: texture});
-        const grass = new THREE.Mesh( geometry, grassMaterial );
-        grass.rotation.x = -0.5 * Math.PI;
-        scene.add( grass );
-    }
+	}
 
-    function createBed () {
-        var loader = new THREE.FBXLoader();
-        loader.load('./obj/good-life.fbx', function ( object ) {            
-            object.children.forEach(child => {
-                if (child.name.includes('hotspot')) hotMeshArr.push(child);
-        });
-        object.name='good-life'
-        house.add( object );
-        });
-    }
-
-
-    function createhome(){
-        var loader = new THREE.FBXLoader();
-        loader.load('./obj/concordia.fbx', function ( object1 ) {
-            object1.children.forEach(child => {
-                if (child.name.includes('hotspot')) hotMeshArr.push(child);
-        });
-        object1.name='createhome';
-        house.add( object1 );
-        });
-    }
-
-    function createterrain(){
-        var loader = new THREE.FBXLoader();
-        loader.load('./obj/promenade.fbx', function ( object2 ) {
-            object2.children.forEach(child => {
-                if (child.name.includes('hotspot')) hotMeshArr.push(child);
-        });
-        object2.name='promenade';
-        house.add( object2 );
-        });
-    }
-
-    function creategurden(){
-        var loader = new THREE.FBXLoader();
-        loader.load('./obj/sanctuary.fbx', function ( object3 ) {
-            object3.children.forEach(child => {
-                if (child.name.includes('hotspot')) hotMeshArr.push(child);
-        });
-        object3.name='promenade';
-        house.add( object3 );
-        });
-    }
-      
-//skybox
-
-    let materialArray = [];
-    let texture_ft = new THREE.TextureLoader().load( 'meadow_ft.jpg');
-    let texture_bk = new THREE.TextureLoader().load( 'meadow_bk.jpg');
-    let texture_up = new THREE.TextureLoader().load( 'meadow_up.jpg');
-    let texture_dn = new THREE.TextureLoader().load( 'meadow_dn.jpg');
-    let texture_rt = new THREE.TextureLoader().load( 'meadow_rt.jpg');
-    let texture_lf = new THREE.TextureLoader().load( 'meadow_lf.jpg');
-  
-    materialArray.push(new THREE.MeshBasicMaterial( { map: texture_ft }));
-    materialArray.push(new THREE.MeshBasicMaterial( { map: texture_bk }));
-    materialArray.push(new THREE.MeshBasicMaterial( { map: texture_up }));
-    materialArray.push(new THREE.MeshBasicMaterial( { map: texture_dn }));
-    materialArray.push(new THREE.MeshBasicMaterial( { map: texture_rt }));
-    materialArray.push(new THREE.MeshBasicMaterial( { map: texture_lf }));
-   
-    for (let i = 0; i< 6; i++)
-    materialArray[i].side = THREE.BackSide;
-   
-    let skyboxGeo = new THREE.BoxGeometry( 10000, 10000, 10000);
-    let skybox = new THREE.Mesh( skyboxGeo, materialArray );
-    scene.add( skybox );  
-
-    function render() {
-    if (timeHouse >= 0){
-        timeHouse--;
-        house.position.x += deltaHouse.x;
-        house.position.z += deltaHouse.z;
-        if (timeHouse===-1) flagMove = false;
-        }
-        renderer.render(scene, camera);
-        requestAnimationFrame(render)
-        }
-    // var firescene = new THREE.Scene();
+	function render() {
+		if (timeHouse >= 0) {
+			timeHouse--;
+			house.position.x += deltaHouse.x;
+			house.position.z += deltaHouse.z;
+			if (timeHouse===-1) flagMove = false;
+		}
+		renderer.render(scene, camera);
+		requestAnimationFrame(render);
+	}
 </script>
 </body>
 </html>
